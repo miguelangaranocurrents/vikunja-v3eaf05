@@ -25,6 +25,7 @@ import {BlockquoteWithCommentId} from './blockquoteWithCommentId'
 import {TaskLink, LINK_HTML_ATTRIBUTES} from './taskLink'
 import {createClipboardParser, fillRequiredContent, repairSliceContent} from './contentRepair'
 import {htmlHasFormatting} from './clipboardHtml'
+import {serializeSliceAsText} from './clipboardText'
 
 import Commands from './commands'
 import suggestionSetup from './suggestion'
@@ -285,7 +286,25 @@ export function createEditorExtensions(deps: EditorExtensionDeps): Extensions {
 		},
 	})
 
+	// Runs before tiptap's core clipboard text serializer, which drops list markers.
+	const PlainTextCopy = Extension.create({
+		name: 'plainTextCopy',
+		priority: 1000,
+
+		addProseMirrorPlugins() {
+			return [
+				new Plugin({
+					key: new PluginKey('plainTextCopy'),
+					props: {
+						clipboardTextSerializer: slice => serializeSliceAsText(slice),
+					},
+				}),
+			]
+		},
+	})
+
 	return [
+		PlainTextCopy,
 		// Starterkit:
 		StarterKit.configure({
 			codeBlock: false,
